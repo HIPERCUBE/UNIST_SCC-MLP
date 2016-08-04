@@ -174,6 +174,8 @@ doLooping: DO
 	!set how often the errors will be output to screen
 	giREDISPLAY = fiGet_Screen_Output_Rate(iIOERR_OK)
 
+    WRITE(*,*) '<RESULT FLAG>'
+
 	CALL sDisplay_Headers
 
 
@@ -221,6 +223,9 @@ doLooping: DO
 	
 	! print final errors to screen
 	CALL sDISPLAY_ERRORS
+
+    WRITE(*,*) '<RESULT FLAG>'//CHAR(10)
+	stop 0
 	
  ENDDO doLooping
 
@@ -707,9 +712,10 @@ LOGICAL FUNCTION flGet_Number_Of_Epochs(iEPOCHS, iIOERR_OK)
 	INTEGER, INTENT(OUT)	:: iEPOCHS
 	INTEGER, INTENT(IN)	:: iIOERR_OK
 	INTEGER			:: i
-
+    INTEGER :: FLAG
     CHARACTER(len=10) :: EPOCHS
 
+    !FLAG = 1
 	DO
 
 	 WRITE(*,'(A)',advance='no',iostat=i) &
@@ -717,8 +723,11 @@ LOGICAL FUNCTION flGet_Number_Of_Epochs(iEPOCHS, iIOERR_OK)
 
 	 IF(i /= iIOERR_OK) EXIT
 	    CALL getarg(5, EPOCHS)
-	    read(EPOCHS, '(i10)')
+	    read(EPOCHS, '(i10)') iEPOCHS
+	    !IF(FLAG != 1)
+	    WRITE(*,*) 'EPOCHS가 입력되었습니다.'
 		IF(i /= iIOERR_OK) CYCLE
+
 
 	 IF (iEPOCHS <= 0) THEN
 		flGet_Number_Of_Epochs = .FALSE.
@@ -741,12 +750,12 @@ SUBROUTINE fGet_Learning_Rates(ra,rb, iIOERR_OK)
 	REAL, INTENT(OUT)	:: rb
 	INTEGER, INTENT(IN)	:: iIOERR_OK
 	INTEGER			:: I
-    CHARACTER :: LEARNINGRATE
+    CHARACTER(len=10) :: LEARNINGRATE
 	DO
 	 WRITE(*,'(A)',advance='no',iostat=I) 'Learning Rate (>0 - 2) ?'
 	 IF(I /= iIOERR_OK) EXIT
-	 CALL getarg(6,LEARNINGRATE)
-	 read(LEARNINGRATE, '(i10)') ra
+	 CALL getarg(6, LEARNINGRATE)
+	 READ(LEARNINGRATE, *) ra
 	 IF(i /= iIOERR_OK) CYCLE
 	 rb = ra/10
 	 EXIT
@@ -760,20 +769,22 @@ INTEGER FUNCTION fiGet_Screen_Output_Rate(iIOERR_OK)
 
 	INTEGER, INTENT(IN)	:: iIOERR_OK
 	INTEGER			:: I
+	CHARACTER(len=10) :: OUTPUTRATE
 
 	DO
-	 WRITE(*,'(A)',advance='no',iostat=I) 'Screen Output Rate (whole number)?'
+	 WRITE(*,'(A)',advance='no',iostat=I) 'Screen Output Rate (whole number)?'//CHAR(10)
 
 	 IF(I /= iIOERR_OK) EXIT
-		READ(*,*,iostat=I) fiGet_Screen_Output_Rate
+	    CALL getarg(7, OUTPUTRATE);
+	    READ(OUTPUTRATE, '(i10)') fiGet_Screen_Output_Rate
 		IF(I /= iIOERR_OK) CYCLE
 
 	 IF (fiGet_Screen_Output_Rate < 1) THEN
 		fiGet_Screen_Output_Rate = 1
 		PRINT *, 'OK - set it to 1!'
 	 ENDIF
-
 	 EXIT
+	 STOP 0
 	ENDDO
 
 END FUNCTION fiGet_Screen_Output_Rate
