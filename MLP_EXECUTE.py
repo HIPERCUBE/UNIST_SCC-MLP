@@ -20,12 +20,17 @@ def experiment(trainingPer, testingPer, neuron, epochs, runningMate, outputRate)
         if command == commandList[-1]:
             fileResult = mlpRead.split('<RESULT FLAG>')[1]
             print(fileResult)
-            filePath = CURRENT_PATH + "/{} {} {} {} {} {}.txt".format(trainingPer, testingPer, neuron,
-                                                                      epochs, runningMate, outputRate)
+            filePath = CURRENT_PATH + "/result/{} {} {} {} {} {}.txt".format(trainingPer, testingPer, neuron,
+                                                                             epochs, runningMate, outputRate)
             print(filePath)
             file = open(filePath, 'w')
             file.write(fileResult)
             file.close()
 
 
-experiment(50, 40, 1, 100, 1, 1)
+# for i in range(0, 30):
+#     for percent in range(5):
+#         experiment(50 + i, 40 - i, 1, 100, percent / 2.0, 1)
+
+# for percent in range(5):
+#         experiment(70, 20, 1, 100, percent / 2.0, 1)
