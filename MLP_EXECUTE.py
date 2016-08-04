@@ -33,11 +33,7 @@ def experiment(trainingPer, testingPer, neuron, epochs, learningRate, outputRate
 
 for i in range(0, 30):
     for percent in range(10):
-<<<<<<< HEAD
-        experiment(50 + i, 40 - i, 30, 100, percent / 10.0, 1)
-=======
         experiment(50 + i, 40 - i, 10, 100, percent / 10.0, 1)
->>>>>>> origin/master
 
 # for percent in range(5):
 #         experiment(70, 20, 1, 100, percent / 2.0, 1)
