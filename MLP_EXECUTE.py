@@ -27,7 +27,7 @@ def experiment(trainingPer, testingPer, neuron, epochs, learningRate, outputRate
             print(fileResult)
             filePath
             print(filePath)
-            file = open(filePath, 'w')
+            file = open(filePath+'.txt', 'w')
             file.write(fileResult)
             file.close()
 
