@@ -27,14 +27,14 @@ def experiment(trainingPer, testingPer, neuron, epochs, learningRate, outputRate
             print(fileResult)
             filePath
             print(filePath)
-            file = open(filePath+'.txt', 'w')
+            file = open(filePath + '.txt', 'w')
             file.write(fileResult)
             file.close()
 
 
 for i in range(0, 30):
     for percent in range(5):
-        experiment(50 + i, 40 - i, 40, 100, percent / 2.0, 1)
+        experiment(50 + i, 40 - i, 40, 100, percent / 2.0, 1
 
 # for percent in range(5):
 #         experiment(70, 20, 1, 100, percent / 2.0, 1)
