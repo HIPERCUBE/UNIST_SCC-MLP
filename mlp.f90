@@ -467,9 +467,12 @@ SUBROUTINE sOpen_DataFile(iUNITNUMBER)
 	PRINT *, 'If it is in the same folder as this executable just type the name'
 	PRINT *, '?'
 
-	DO 
-		READ *, cFILENAME
+	DO
+	    CALL getarg(1,cFILENAME)
+
+		! READ *, cFILENAME
 		IF (cFILENAME == 'q' .or. cFILENAME == 'Q') STOP
+
 
 		! open data file
 		OPEN(UNIT=iUNITNUMBER, ERR=100, FILE=cFILENAME, STATUS='OLD')
@@ -489,31 +492,31 @@ END SUBROUTINE sOpen_DataFile
 
 SUBROUTINE sRead_Data &
 (iUNITNUMBER, iPATTERNS, iFIELDS, arDATAARRAY, iHEADERROWS, iIOERR_OK)
-! read in data	
+! read in data
 
-	INTEGER, INTENT(IN)  :: iUNITNUMBER	
+	INTEGER, INTENT(IN)  :: iUNITNUMBER
 	INTEGER, INTENT(IN)  :: iPATTERNS
 	INTEGER, INTENT(IN)  :: iFIELDS
 	INTEGER, INTENT(IN)  :: iHEADERROWS
 	INTEGER, INTENT(IN)  :: iIOERR_OK
 	REAL, INTENT(OUT)    :: arDATAARRAY(iPATTERNS,iFIELDS)
 
-	CHARACTER (LEN = 1)  :: cHEAD	
-	
+	CHARACTER (LEN = 1)  :: cHEAD
+
 	INTEGER :: I,K
 	INTEGER :: mis
 
 	REWIND(UNIT=iUNITNUMBER)
-	
-	IF (iHEADERROWS > 0) THEN	
+
+	IF (iHEADERROWS > 0) THEN
 		DO I = 1,iHEADERROWS
 			READ(UNIT=iUNITNUMBER, FMT='(A)',END=100) cHEAD
 		ENDDO
-		100 IF (I < iHEADERROWS) PRINT *,'Too many header rows...' 
-	END IF	
-	
+		100 IF (I < iHEADERROWS) PRINT *,'Too many header rows...'
+	END IF
+
 	PRINT *, ' Reading data...'
-	
+
 	DO I=1,iPATTERNS
 		READ(UNIT=iUNITNUMBER, FMT=*,iostat=mis, END=200)(arDATAARRAY(I,K),K=1,iFIELDS)
 		IF(mis /= iIOERR_OK) then
@@ -521,7 +524,7 @@ SUBROUTINE sRead_Data &
 		  STOP
 		ENDIF
 	ENDDO
-	
+
 	PRINT *, ' Data read OK!'
 
 	200 IF (I < iPATTERNS) PRINT *,'Too many header rows...'
@@ -534,11 +537,11 @@ END SUBROUTINE sRead_Data
 
 SUBROUTINE sScan_File(iUNITNUMBER, iDATAFIELDS, iFILEROWS, iSKIPLINES, iIOERR_OK)
 
-	INTEGER, INTENT(IN)   :: iUNITNUMBER	
+	INTEGER, INTENT(IN)   :: iUNITNUMBER
 	INTEGER, INTENT(OUT)  :: iDATAFIELDS
 	INTEGER, INTENT(OUT)  :: iFILEROWS
 	INTEGER, INTENT(OUT)  :: iSKIPLINES
-	INTEGER, INTENT(INOUT)   :: iIOERR_OK	
+	INTEGER, INTENT(INOUT)   :: iIOERR_OK
 
 	PRINT *, 'Scanning file...'
 
@@ -570,9 +573,9 @@ INTEGER FUNCTION fiGet_Header_Rows(iIOERR_OK)
 	INTEGER :: I
 
 	DO
-	 WRITE(*,'(A)',advance='no',iostat=I) 'How many header rows in the file?'
+	 WRITE(*,'(A)',advance='no',iostat=I) 'Header_Rows는 자동적으로 1로 고정되었습니다.'
 	 IF(I /= iIOERR_OK) EXIT
-		READ(*,*,iostat=I) fiGet_Header_Rows
+		fiGet_Header_Rows= 1
 		IF(I /= iIOERR_OK) CYCLE
 		IF (fiGet_Header_Rows< 0) THEN
 		 PRINT *, 'OK - no header row...'
@@ -592,10 +595,14 @@ INTEGER FUNCTION fiGet_Hidden_Neurons(iIOERR_OK)
 	INTEGER, INTENT(IN)		:: iIOERR_OK
 	INTEGER :: I
 
+	CHARACTER(len=10) :: NEURONS
+
 	DO
 	 WRITE(*,'(A)',advance='no',iostat=I) 'How many hidden neurons?'
 	 IF(I /= iIOERR_OK) EXIT
-		READ(*,*,iostat=I) fiGet_Hidden_Neurons
+	    CALL getarg(4, NEURONS)
+	    read(NEURONS, '(i10)') fiGet_Hidden_Neurons
+
 		IF(I /= iIOERR_OK) CYCLE
 		IF (fiGet_Hidden_Neurons< 1) THEN
 		 PRINT *, 'Hidden neurons set to 1'
@@ -615,6 +622,8 @@ SUBROUTINE sGet_Set_Sizes(iTRAIN,iTEST,iVALID,iTOTAL,iIOERR_OK)
 
 	INTEGER	:: I, iPERCTR, iPERCTE
 
+	CHARACTER(len=2) :: TRAININGPERCENT, TESTINGPERCENT
+
 	iTRAIN = iTOTAL
 	iTEST = 0
 	iVALID = 0
@@ -627,7 +636,10 @@ SUBROUTINE sGet_Set_Sizes(iTRAIN,iTEST,iVALID,iTOTAL,iIOERR_OK)
 		'What percent do you want to use for the training sample? '
 
 		IF(I /= iIOERR_OK) EXIT
-		READ(*,*,iostat=I) iPERCTR
+
+        CALL getarg(2, TRAININGPERCENT)
+        READ(TRAININGPERCENT, '(i10)') iPERCTR
+
 		IF(I /= iIOERR_OK) CYCLE
 
 		IF (iPERCTR >= 100) THEN
@@ -648,14 +660,15 @@ SUBROUTINE sGet_Set_Sizes(iTRAIN,iTEST,iVALID,iTOTAL,iIOERR_OK)
 
 
 	IF (iPERCTR < 100) THEN
-
 	 DO
 
 		WRITE(*,'(A)',advance='no',iostat=I) &
 		'What percent do you want to use for the testing sample? '
 
 		IF(I /= iIOERR_OK) EXIT
-		READ(*,*,iostat=I) iPERCTE
+		CALL getarg(3, TESTINGPERCENT)
+		read(TESTINGPERCENT, '(i10)') iPERCTE
+
 		IF(I /= iIOERR_OK) CYCLE
 
 		IF (iPERCTE>100-iPERCTR) CYCLE
@@ -673,12 +686,12 @@ SUBROUTINE sGet_Set_Sizes(iTRAIN,iTEST,iVALID,iTOTAL,iIOERR_OK)
 
 	iVALID = iTOTAL - iTRAIN - iTEST
 	PRINT * , ' '
-	PRINT * , ' ' 
+	PRINT * , ' '
 	PRINT 100 ,iTOTAL
 	PRINT 110 ,iPERCTR,iTRAIN
 	PRINT 120 ,iPERCTE,iTEST
 	PRINT 130 ,100-iPERCTR-iPERCTE,iVALID
-	PRINT * , '' 
+	PRINT * , ''
 
 100 FORMAT ('Total patterns = ',I10)
 110 FORMAT ('Train =',1X,I3,'%',I7,1X,'Patterns')
@@ -695,21 +708,24 @@ LOGICAL FUNCTION flGet_Number_Of_Epochs(iEPOCHS, iIOERR_OK)
 	INTEGER, INTENT(IN)	:: iIOERR_OK
 	INTEGER			:: i
 
+    CHARACTER(len=10) :: EPOCHS
+
 	DO
 
 	 WRITE(*,'(A)',advance='no',iostat=i) &
 	 'How many epochs to train for (0 to exit) ?'
 
 	 IF(i /= iIOERR_OK) EXIT
-		READ(*,*,iostat=i) iEPOCHS
+	    CALL getarg(5, EPOCHS)
+	    read(EPOCHS, '(i10)')
 		IF(i /= iIOERR_OK) CYCLE
 
 	 IF (iEPOCHS <= 0) THEN
 		flGet_Number_Of_Epochs = .FALSE.
 	 ELSE
 		flGet_Number_Of_Epochs = .TRUE.
-	 ENDIF	
-	
+	 ENDIF
+
 	 EXIT
 
 	ENDDO
@@ -725,11 +741,12 @@ SUBROUTINE fGet_Learning_Rates(ra,rb, iIOERR_OK)
 	REAL, INTENT(OUT)	:: rb
 	INTEGER, INTENT(IN)	:: iIOERR_OK
 	INTEGER			:: I
-
+    CHARACTER :: LEARNINGRATE
 	DO
 	 WRITE(*,'(A)',advance='no',iostat=I) 'Learning Rate (>0 - 2) ?'
 	 IF(I /= iIOERR_OK) EXIT
-	 READ(*,*,iostat=I) ra
+	 CALL getarg(6,LEARNINGRATE)
+	 read(LEARNINGRATE, '(i10)') ra
 	 IF(i /= iIOERR_OK) CYCLE
 	 rb = ra/10
 	 EXIT
@@ -739,7 +756,7 @@ END SUBROUTINE fGet_Learning_Rates
 
 
 
-INTEGER FUNCTION fiGet_Screen_Output_Rate(iIOERR_OK) 
+INTEGER FUNCTION fiGet_Screen_Output_Rate(iIOERR_OK)
 
 	INTEGER, INTENT(IN)	:: iIOERR_OK
 	INTEGER			:: I
@@ -748,13 +765,13 @@ INTEGER FUNCTION fiGet_Screen_Output_Rate(iIOERR_OK)
 	 WRITE(*,'(A)',advance='no',iostat=I) 'Screen Output Rate (whole number)?'
 
 	 IF(I /= iIOERR_OK) EXIT
-		READ(*,*,iostat=I) fiGet_Screen_Output_Rate 
+		READ(*,*,iostat=I) fiGet_Screen_Output_Rate
 		IF(I /= iIOERR_OK) CYCLE
 
 	 IF (fiGet_Screen_Output_Rate < 1) THEN
 		fiGet_Screen_Output_Rate = 1
 		PRINT *, 'OK - set it to 1!'
-	 ENDIF	
+	 ENDIF
 
 	 EXIT
 	ENDDO
@@ -807,10 +824,10 @@ SUBROUTINE sSet_Data_Constants &
 	INTEGER, INTENT (OUT)	:: iNOUTPUTS
 	INTEGER, INTENT (OUT)	:: iNDU
 	INTEGER, INTENT (OUT)	:: iINPPB
-	
+
 	INTEGER, INTENT (IN)	:: iFILEROWS
-	INTEGER, INTENT (IN)	:: iSKIPLINES	
-	INTEGER, INTENT (IN)	:: iDATAFIELDS 
+	INTEGER, INTENT (IN)	:: iSKIPLINES
+	INTEGER, INTENT (IN)	:: iDATAFIELDS
 
 
 	iNPATS = iFILEROWS - iSKIPLINES
@@ -828,7 +845,7 @@ SUBROUTINE sSet_Weight_Constants(iIOERR_OK)
 
 	INTEGER, INTENT(IN) :: iIOERR_OK
 
-	giHIDDDEN = fiGet_Hidden_Neurons(iIOERR_OK)  
+	giHIDDDEN = fiGet_Hidden_Neurons(iIOERR_OK)
 
 	! number the neurons
 	giHIDDDEN=giHIDDDEN+1			!accounts for bias to output
@@ -846,11 +863,11 @@ SUBROUTINE sCreate_Training_Data()
 	INTEGER :: iTRAINCOUNT,iTESTCOUNT,iVALIDCOUNT
 	INTEGER :: I
 	REAL :: rTRPC,rTEPC
-	REAL :: rRAND	
-	
+	REAL :: rRAND
+
 	rTRPC = FLOAT(giTRAINPATS) / FLOAT(giPATS)
 	rTEPC = rTRPC + (FLOAT(giTESTPATS) / FLOAT(giPATS))
-	
+
 	iTRAINCOUNT = 0
 	iTESTCOUNT = 0
 	iVALIDCOUNT = 0
@@ -860,8 +877,8 @@ SUBROUTINE sCreate_Training_Data()
  DO I=1,giPATS
 	CALL RANDOM_NUMBER(rRAND)
 
-	IF ((rRAND <= rTRPC) .AND. (iTRAINCOUNT < giTRAINPATS)) THEN
-		iTRAINCOUNT = iTRAINCOUNT + 1 
+	IF ((rRAND <= rTRPC) .AND.  (iTRAINCOUNT < giTRAINPATS)) THEN
+		iTRAINCOUNT = iTRAINCOUNT + 1
 		garTrainingInputs(iTRAINCOUNT,1:giINPUTS)=garDataArray(I,1:giINPUTS)
 		garTrainingInputs(iTRAINCOUNT,giINPPB)=1
 		garTrainingOutputs(iTRAINCOUNT)=garDataArray(I,giNDU)
@@ -879,7 +896,7 @@ SUBROUTINE sCreate_Training_Data()
 		garValidationOutputs(iVALIDCOUNT)=garDataArray(I,giNDU)
 
 	ELSEIF (iTRAINCOUNT < giTRAINPATS) THEN
-		iTRAINCOUNT = iTRAINCOUNT + 1 
+		iTRAINCOUNT = iTRAINCOUNT + 1
 		garTrainingInputs(iTRAINCOUNT,1:giINPUTS)=garDataArray(I,1:giINPUTS)
 		garTrainingInputs(iTRAINCOUNT,giINPPB)=1
 		garTrainingOutputs(iTRAINCOUNT)=garDataArray(I,giNDU)
@@ -901,10 +918,10 @@ SUBROUTINE sCreate_Training_Data()
  ENDDO
 
 	!the array 'data' is no longer required
-	DEALLOCATE(garDataArray)				
+	DEALLOCATE(garDataArray)
 	PRINT *, ' Data allocated OK!'
 
-    PRINT*, 'iTRAINCOUNT,  iTESTCOUNT, iVALIDCOUNT ', iTRAINCOUNT, iTESTCOUNT, iVALIDCOUNT  
+    PRINT*, 'iTRAINCOUNT,  iTESTCOUNT, iVALIDCOUNT ', iTRAINCOUNT, iTESTCOUNT, iVALIDCOUNT
 
 END SUBROUTINE sCreate_Training_Data
 
@@ -932,17 +949,17 @@ SUBROUTINE sScale_Data()
 	garTrainingInputs(i,1:giINPUTS) = &
 	((garTrainingInputs(i,1:giINPUTS) - garMinInp(1:giINPUTS)) / &
 	(garMaxInp(1:giINPUTS) - garMinInp(1:giINPUTS)) - 0.5) * 2
-	ENDDO	
+	ENDDO
 
 	garTrainingOutputs(:) = &
 	((garTrainingOutputs(:) - grMinOut) / (grMaxOut - grMinOut) - 0.5) * 2
-	
+
 	IF (giTESTPATS > 0) THEN
 	DO i = 1,giTESTPATS
 	garTestingInputs(i,1:giINPUTS) = &
 	((garTestingInputs(i,1:giINPUTS) - garMinInp(1:giINPUTS)) / &
 	(garMaxInp(1:giINPUTS) - garMinInp(1:giINPUTS)) - 0.5) * 2
-	ENDDO		
+	ENDDO
 	garTestingOutputs(:) = &
 	((garTestingOutputs(:) - grMinOut) / (grMaxOut - grMinOut) - 0.5) * 2
 	ENDIF
@@ -952,7 +969,7 @@ SUBROUTINE sScale_Data()
 	garValidationInputs(i,1:giINPUTS) = &
 	((garValidationInputs(i,1:giINPUTS) - garMinInp(1:giINPUTS)) / &
 	(garMaxInp(1:giINPUTS) - garMinInp(1:giINPUTS)) - 0.5) * 2
-	ENDDO	
+	ENDDO
 	garValidationOutputs(:) = &
 	((garValidationOutputs(:) - grMinOut) / (grMaxOut - grMinOut) - 0.5) * 2
 	ENDIF
@@ -966,11 +983,11 @@ END SUBROUTINE sScale_Data
 
 SUBROUTINE sInitiate_Weights(arWIHL,arWHOL,arWIHBESTL,arWHOBESTL)
 ! generate initial random weights
-	
+
 	Real, Dimension (:,:),	Intent (INOUT) :: arWIHL
-	Real, Dimension (:,:),	Intent (INOUT) :: arWIHBESTL	
+	Real, Dimension (:,:),	Intent (INOUT) :: arWIHBESTL
 	Real, Dimension (:), 	Intent (INOUT) :: arWHOL
-	Real, Dimension (:),	Intent (INOUT) :: arWHOBESTL	
+	Real, Dimension (:),	Intent (INOUT) :: arWHOBESTL
 
 	INTEGER :: J, K
 	REAL :: rRAND
